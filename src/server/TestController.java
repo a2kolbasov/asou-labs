@@ -14,6 +14,7 @@ public class TestController implements Controller {
     public String put(String param){
         if (param == null)
             return "error";
-        return "ok";
+        else
+            return param;
     }
 }
