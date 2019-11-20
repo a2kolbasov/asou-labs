@@ -12,7 +12,7 @@ public class TestController implements Controller {
     }
 
     public String put(String param){
-        if (param == null)
+        if (param.equals(""))
             return "error";
         else
             return param;

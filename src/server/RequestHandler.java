@@ -68,11 +68,10 @@ public class RequestHandler implements Runnable {
             case "GET":
             case "PUT":
             case "POST":
-                doGet(httpPath, request.substring(request.indexOf("\n\n")));
-                break;
-
-//                doPut(httpPath);
+                doGet(httpPath, request.substring(request.indexOf("\n\n") + 2));
 //                break;
+                //doPut(httpPath, request.substring(request.indexOf("\n\n") + 2));
+                break;
             default:
                 writeToSocket(getHttpResponse("Unknown http method", 404));
                 return;
@@ -93,24 +92,24 @@ public class RequestHandler implements Runnable {
     }
 
     private void doGet(String httpPath, String message) throws InvocationTargetException, IllegalAccessException, IOException {
-        String[] methodToCall = new String[
-                message.length() > 2 ? 2 : 1
-                ];
+        String[] methodToCall = new String[2];
         methodToCall[0] = httpPath.split("[?]")[0];
-        if (message.length() > 2) methodToCall[1] = message;
+        //methodToCall[1] = httpPath.split("[?]").length == 2 ? httpPath.split("[?]")[1] : null;
+        methodToCall[1] = message;
+
+//        if (message.length() > 2) methodToCall[1] = message;
 
         for (Method controllerMethod : controller.getClass().getMethods()){
             if (controllerMethod.getName().equals(methodToCall[0])){
                 writeToSocket(getHttpResponse(
-                        (String) controllerMethod.invoke(controller,
-                                methodToCall.length > 1 ? methodToCall[1] : null)
+                        (String) controllerMethod.invoke(controller, methodToCall[1])
                 ));
                 return;
             }
         }
     }
 
-    private void doPut(String httpPath) throws IllegalAccessException, IOException, InvocationTargetException {
+    private void doPut(String httpPath, String message) throws IllegalAccessException, IOException, InvocationTargetException {
 //        doGet(httpPath);
         String clientAnswer = readFromSocket();
 
@@ -166,7 +165,7 @@ public class RequestHandler implements Runnable {
             //result.append(line);//.append('\n');
         }
         String r = result.toString();
-        assert !r.equals("");
+        //assert !r.equals("");
         return result.toString().replaceAll("\r\n", "\n");
     }
     private void writeToSocket(String message) throws IOException {
