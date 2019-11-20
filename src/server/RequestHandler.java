@@ -4,6 +4,9 @@ import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.Socket;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 
@@ -63,53 +66,48 @@ public class RequestHandler implements Runnable {
             return;
         }
 
-        httpPath = httpPath.substring(1);
-        switch (httpMethod){
-            case "GET":
-            case "PUT":
-            case "POST":
-                doGet(httpPath, request.substring(request.indexOf("\n\n") + 2));
-//                break;
-                //doPut(httpPath, request.substring(request.indexOf("\n\n") + 2));
-                break;
-            default:
-                writeToSocket(getHttpResponse("Unknown http method", 404));
-                return;
-        }
+        String[] tmp = httpPath.substring(1).split("[?]");
+        httpPath = tmp[0];
+        String ask = tmp.length > 1 ? tmp[1] : "";
+        String body = request.substring(request.indexOf("\n\n") + 2);
 
+        String result =
+                getControllerAnswer(httpPath, ask, body);
 
-//        try {
-//            File file = new File(filesPath + httpPath);
-//            BufferedReader fileReader = new BufferedReader(new FileReader(file));
-//            String fileContent = ReadLineFromSocket(fileReader);
-//
-//            WriteHttpResponseToSocket(outputStream, fileContent);
-//
-//        } catch (FileNotFoundException e) {
-//            WriteHttpResponseToSocket(outputStream, "File not found", 404);
-//        }
-        writeToSocket(getHttpResponse("ok"));
+        if (result == null)
+            result = getFile(httpPath);
+
+        if (result == null)
+            writeToSocket(getHttpResponse("Not found", 404));
+        else
+            writeToSocket(getHttpResponse(result));
     }
 
-    private void doGet(String httpPath, String message) throws InvocationTargetException, IllegalAccessException, IOException {
-        String[] methodToCall = new String[2];
-        methodToCall[0] = httpPath.split("[?]")[0];
-        //methodToCall[1] = httpPath.split("[?]").length == 2 ? httpPath.split("[?]")[1] : null;
-        methodToCall[1] = message;
-
-//        if (message.length() > 2) methodToCall[1] = message;
-
+    private String getControllerAnswer(String httpPath, String ask, String body) throws InvocationTargetException, IllegalAccessException, IOException {
         for (Method controllerMethod : controller.getClass().getMethods()){
-            if (controllerMethod.getName().equals(methodToCall[0])){
-                writeToSocket(getHttpResponse(
-                        (String) controllerMethod.invoke(controller, methodToCall[1])
-                ));
-                return;
+            if (controllerMethod.getName().equals(httpPath)){
+                return (String) controllerMethod.invoke(controller, ask, body);
             }
         }
+        return null;
     }
 
-    private void doPut(String httpPath, String message) throws IllegalAccessException, IOException, InvocationTargetException {
+    private String getFile(String httpPath) throws IOException {
+        try {
+            System.out.println(
+                    Paths.get(filesPath, httpPath).getParent().toString()
+            );
+            StringBuilder sb = new StringBuilder();
+            for (String string : Files.readAllLines(Paths.get(
+                    filesPath, httpPath)))
+                sb.append(string);
+            return sb.toString();
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    private void doPut(String httpPath, String body) throws IllegalAccessException, IOException, InvocationTargetException {
 //        doGet(httpPath);
         String clientAnswer = readFromSocket();
 

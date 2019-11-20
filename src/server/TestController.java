@@ -1,20 +1,19 @@
 package server;
 
-import java.util.Date;
-
 public class TestController implements Controller {
-    public String foo(String param) {
+    public String foo(String ask, String body) {
         return "it work!";
     }
 
-    public long getTime(String param) {
-        return new Date().getTime();
+    public String getTime(String ask, String body) {
+        return "" + System.currentTimeMillis();
     }
 
-    public String put(String param){
-        if (param.equals(""))
+    public String put(String ask, String body){
+        System.out.println("ask:" + ask);
+        if (body.equals(""))
             return "error";
         else
-            return param;
+            return body;
     }
 }
