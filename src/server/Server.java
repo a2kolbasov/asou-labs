@@ -3,7 +3,6 @@ package server;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.List;
 
 public class Server {
     private final int port;
@@ -16,12 +15,12 @@ public class Server {
         this.controller = controller;
     }
 
-    public boolean start() throws IOException {
+    public void start() throws IOException {
         ServerSocket serverSocket = new ServerSocket(port);
         System.out.printf("Wait client on :%d\n\n", port);
         while (true) {
             Socket clientSocket = serverSocket.accept();
-            new Thread(new RequestHandler(clientSocket, path, controller)).start();
+            new Thread(new Handler(clientSocket, path, controller)).start();
         }
     }
 }
