@@ -8,7 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 class Handler implements Runnable {
-    private final String NEW_LINE = "\r\n";
+    private final static String NEW_LINE = "\r\n";
 
     private final String filesPath;
     private final Socket clientSocket;
@@ -84,7 +84,7 @@ class Handler implements Runnable {
                             // Иниче вернёт пустую строку ""
                             request.length()
             );
-            requestParameters.setQuery(query).setBody(body);
+            requestParameters.setQuery(query).setBody(body).setMethod(httpMethod);
         }
 
         String result = getControllerAnswer(httpPath, requestParameters);
@@ -143,7 +143,7 @@ class Handler implements Runnable {
         writeToSocket(getHttpResponse(statusCode, content));
     }
 
-    private String getHttpResponse(int statusCode, String content) {
+    static String getHttpResponse(int statusCode, String content) {
         return
                 "HTTP/1.1 " + statusCode + NEW_LINE +
                         "Content-Type: text/html" + NEW_LINE +
