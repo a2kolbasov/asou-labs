@@ -1,0 +1,7 @@
+CREATE TABLE "Carts" (
+	"Id"	INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+	"Name"	TEXT,
+	"Items"	TEXT,
+	"Price"	INTEGER,
+	"Status"	TEXT
+);

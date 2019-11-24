@@ -8,7 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 class Handler implements Runnable {
-    private final static String NEW_LINE = "\r\n";
+    final static String NEW_LINE = "\r\n";
 
     private final String filesPath;
     private final Socket clientSocket;
@@ -28,7 +28,9 @@ class Handler implements Runnable {
         try {
             init();
             doIt();
-        } catch (IOException | IllegalAccessException | InvocationTargetException ignored) {}
+        } catch (IOException | IllegalAccessException | InvocationTargetException ignored) {
+            ignored.printStackTrace();
+        }
         finally {
             try {
                 input.close();
@@ -63,12 +65,12 @@ class Handler implements Runnable {
             httpPath = "/index.html";
         }
         if (httpPath.contains("..")) {
-            writeResponseToSocket(StatusCode.BAD_REQUEST, "Bad request");
+            writeToSocket(StatusCode.BAD_REQUEST.getHttpResponse());
             // Stop Handler
             throw new IOException();
         }
 
-        Controller.Parameters requestParameters = new Controller.Parameters();
+        Controller.Parameters requestParameters;
         {
             String query, body;
             String[] parts = httpPath.substring(1).split("[?]");
@@ -84,20 +86,22 @@ class Handler implements Runnable {
                             // Иниче вернёт пустую строку ""
                             request.length()
             );
-            requestParameters.setQuery(query).setBody(body).setMethod(httpMethod);
+            requestParameters = new Controller.Parameters(httpMethod, query, body);
         }
 
         String result = getControllerAnswer(httpPath, requestParameters);
-        if (result == null)
+        if (result != null)
+            writeToSocket(result);
+        else {
             result = getFile(httpPath);
-
-        if (result == null)
-            writeResponseToSocket(StatusCode.NOT_FOUND, "Not found");
-        else
-            writeResponseToSocket(StatusCode.OK, result);
+            writeToSocket(
+                    result != null ?
+                            result : StatusCode.NOT_FOUND.getHttpResponse()
+            );
+        }
     }
 
-    private String getControllerAnswer(String httpPath, Controller.Parameters requestParameters) throws InvocationTargetException, IllegalAccessException, IOException {
+    private String getControllerAnswer(String httpPath, Controller.Parameters requestParameters) throws InvocationTargetException, IllegalAccessException {
         for (Method controllerMethod : controller.getClass().getMethods()){
             if (controllerMethod.getName()
                     .toLowerCase().equals(httpPath)){
@@ -108,53 +112,31 @@ class Handler implements Runnable {
         return null;
     }
 
-    private String getFile(String httpPath) throws IOException {
+    private String getFile(String httpPath) {
         try {
             StringBuilder sb = new StringBuilder();
             for (String string : Files.readAllLines(Paths.get(
                     filesPath, httpPath)))
                 sb.append(string).append(NEW_LINE);
-            return sb.toString();
+            return StatusCode.OK.getHttpResponse(sb.toString());
         } catch (IOException e) {
-            e.printStackTrace();
             return null;
         }
     }
 
     private String readFromSocket() throws IOException {
-//        String line;
         StringBuilder result = new StringBuilder();
         while (input.ready()) {
             char[] buffer = new char[32];
             int length = input.read(buffer);
             result.append(String.valueOf(buffer, 0, length));
-//            line = input.readLine();
-//            result.append((char) input.read());
-//            line = input.read();
-//            assert line != null;
-//            result.append(line);//.append(NEW_LINE);
         }
-//        String r = result.toString();
-//        assert !r.equals("");
         return result.toString().replaceAll("\r\n", "\n");
     }
 
-    private void writeResponseToSocket(int statusCode, String content) throws IOException {
-        writeToSocket(getHttpResponse(statusCode, content));
-    }
-
-    static String getHttpResponse(int statusCode, String content) {
-        return
-                "HTTP/1.1 " + statusCode + NEW_LINE +
-                        "Content-Type: text/html" + NEW_LINE +
-                        "Content-Length: " + content.length() + NEW_LINE +
-                        "Connection: close" + NEW_LINE + NEW_LINE +
-                        content;
-    }
-
-    private void writeToSocket(String message) throws IOException {
+    private void writeToSocket(String content) throws IOException {
         output.write(
-                message.getBytes());
+                content.getBytes());
         output.flush();
     }
 

@@ -1,8 +1,6 @@
-import server.Controller;
-
-public class MyController implements Controller {
+public class MyController implements server.Controller {
     public String test(Parameters p) {
-        return "it work!";
+        return "{}";
     }
 
     public String Time(Parameters p) {
