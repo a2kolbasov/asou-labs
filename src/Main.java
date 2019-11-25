@@ -1,6 +1,6 @@
 import server.Controller;
 import server.Server;
-import sqlite.SqlController;
+import sql.SqlController;
 
 import java.io.IOException;
 

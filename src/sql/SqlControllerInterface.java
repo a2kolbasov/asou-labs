@@ -1,7 +1,11 @@
-package sqlite;
+/*
+ * Copyright © 2019 Alexander Kolbasov
+ */
+
+package sql;
 
 import server.Controller.Parameters;
-import server.StatusCode;
+import server.Response;
 
 interface SqlControllerInterface {
     public String create(Parameters p);
@@ -15,6 +19,6 @@ interface SqlControllerInterface {
     }
 
     default String badRequest() {
-        return StatusCode.BAD_REQUEST.getHttpResponse();
+        return Response.BAD_REQUEST.getHttpResponse();
     }
 }

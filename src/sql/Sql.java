@@ -1,4 +1,8 @@
-package sqlite;
+/*
+ * Copyright © 2019 Alexander Kolbasov
+ */
+
+package sql;
 
 import java.sql.*;
 import java.util.Arrays;
@@ -63,13 +67,11 @@ class Sql {
 
     boolean create(Cart cart) {
         try {
-            String tmp = String.format(
+            String sql = String.format(
                     "insert into Carts values (%d, \"%s\", \"%s\", %d, \"%s\");",
                     cart.getId(), cart.getName(), Arrays.toString(cart.getItems()), cart.getPrice(), cart.getStatus()
             );
-            statement.executeUpdate(
-                    tmp
-            );
+            statement.executeUpdate(sql);
             return true;
         } catch (SQLException e) {
             return false;

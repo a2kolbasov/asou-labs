@@ -1,4 +1,8 @@
-package sqlite;
+/*
+ * Copyright © 2019 Alexander Kolbasov
+ */
+
+package sql;
 
 import com.google.gson.Gson;
 

@@ -1,6 +1,10 @@
-package sqlite;
+/*
+ * Copyright © 2019 Alexander Kolbasov
+ */
 
-import server.StatusCode;
+package sql;
+
+import server.Response;
 
 public class SqlController implements server.Controller, SqlControllerInterface {
     private Sql sqlite = Sql.init("db.db");
@@ -11,9 +15,9 @@ public class SqlController implements server.Controller, SqlControllerInterface 
             return badRequest();
 
         Cart cart = Json.fromJson(p.getBody());
-        return StatusCode.getHttpResponse(
+        return Response.getHttpResponse(
                 sqlite.create(cart) ?
-                        StatusCode.ACCEPTED : StatusCode.NOT_ACCEPTABLE
+                        Response.ACCEPTED : Response.NOT_ACCEPTABLE
         );
     }
 
@@ -23,9 +27,9 @@ public class SqlController implements server.Controller, SqlControllerInterface 
             return badRequest();
 
         Cart cart = Json.fromJson(p.getBody());
-        return StatusCode.getHttpResponse(
+        return Response.getHttpResponse(
                 sqlite.update(cart) ?
-                        StatusCode.ACCEPTED : StatusCode.NOT_ACCEPTABLE
+                        Response.ACCEPTED : Response.NOT_ACCEPTABLE
         );
     }
 
@@ -33,12 +37,10 @@ public class SqlController implements server.Controller, SqlControllerInterface 
     public String list(Parameters p) {
         Cart[] carts = sqlite.list();
         StringBuilder sb = new StringBuilder();
-//        if (carts == null)
-//            return StatusCode.NOT_ACCEPTABLE.getHttpResponse();
         for (Cart cart : carts)
             sb.append(Json.toJson(cart)).append('\n');
 
-        return StatusCode.OK.getHttpResponse(
+        return Response.OK.getHttpResponse(
                 sb.length() > 0 ? sb.toString() : "{}"
         );
     }
@@ -52,15 +54,13 @@ public class SqlController implements server.Controller, SqlControllerInterface 
             if (notEqualMethod(p, "get") || index == -1)
                 return badRequest();
 
-            String tmp = p.getQuery().substring(index + param.length()).split(",")[0];
             int id = Integer.parseInt(
-                    tmp
+                    p.getQuery().substring(index + param.length()).split(",")[0]
             );
-            System.out.println("id=" + id);
 
             Cart cart = sqlite.get(id);
-            return StatusCode.getHttpResponse(
-                    StatusCode.OK,
+            return Response.getHttpResponse(
+                    Response.OK,
                     cart != null ?
                             Json.toJson(cart) : "{}"
             );
@@ -76,9 +76,9 @@ public class SqlController implements server.Controller, SqlControllerInterface 
         if (notEqualMethod(p, "delete"))
             return badRequest();
         int id = Json.fromJson(p.getBody()).getId();
-        return StatusCode.getHttpResponse(
+        return Response.getHttpResponse(
                 sqlite.delete(id) ?
-                        StatusCode.ACCEPTED : StatusCode.NOT_ACCEPTABLE
+                        Response.ACCEPTED : Response.NOT_ACCEPTABLE
         );
     }
 }
