@@ -1,3 +1,7 @@
+/*
+ * Copyright © 2019 Aleksandr Kolbasov
+ */
+
 public class MyController implements server.Controller {
     public String test(Parameters p) {
         return "{}";

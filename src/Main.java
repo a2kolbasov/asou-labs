@@ -1,3 +1,7 @@
+/*
+ * Copyright © 2019 Aleksandr Kolbasov
+ */
+
 import server.Controller;
 import server.Server;
 import sql.SqlController;

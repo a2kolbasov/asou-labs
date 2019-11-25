@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019 Alexander Kolbasov
+ * Copyright © 2019 Aleksandr Kolbasov
  */
 
 package server;
