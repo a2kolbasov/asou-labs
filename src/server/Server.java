@@ -1,3 +1,7 @@
+/*
+ * Copyright © 2019 Alexander Kolbasov
+ */
+
 package server;
 
 import java.io.IOException;
@@ -20,7 +24,9 @@ public class Server {
         System.out.printf("Wait client on :%d\n\n", port);
         while (true) {
             Socket clientSocket = serverSocket.accept();
-            new Thread(new Handler(clientSocket, path, controller)).start();
+            new Thread(
+                    new Handler(clientSocket, path, controller)
+            ).start();
         }
     }
 }

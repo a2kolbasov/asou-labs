@@ -1,7 +1,11 @@
+/*
+ * Copyright © 2019 Alexander Kolbasov
+ */
+
 package server;
 
 public interface Controller {
-    static class Parameters {
+    class Parameters {
         private final String method, query, body;
 
         public Parameters(String method, String query, String body) {

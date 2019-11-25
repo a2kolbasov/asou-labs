@@ -1,3 +1,7 @@
+/*
+ * Copyright © 2019 Alexander Kolbasov
+ */
+
 package server;
 
 import java.io.*;
@@ -7,11 +11,11 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-class Handler implements Runnable {
-    final static String NEW_LINE = "\r\n";
+import static server.Response.NEW_LINE;
 
-    private final String filesPath;
+class Handler implements Runnable {
     private final Socket clientSocket;
+    private final String filesPath;
     private final Controller controller;
 
     private BufferedReader input;
@@ -27,14 +31,10 @@ class Handler implements Runnable {
     public void run() {
         try {
             init();
-            doIt();
+            handle();
         } catch (IOException | IllegalAccessException | InvocationTargetException ignored) {
-            ignored.printStackTrace();
-        }
-        finally {
+        } finally {
             try {
-                input.close();
-                output.close();
                 clientSocket.close();
             } catch (IOException e) {
                 e.printStackTrace();
@@ -50,7 +50,7 @@ class Handler implements Runnable {
         input = new BufferedReader(new InputStreamReader(inputStream));
     }
 
-    private void doIt() throws IOException, InvocationTargetException, IllegalAccessException {
+    private void handle() throws IOException, InvocationTargetException, IllegalAccessException {
         final String request =
                 readFromSocket();
         System.out.println(request);
@@ -65,9 +65,9 @@ class Handler implements Runnable {
             httpPath = "/index.html";
         }
         if (httpPath.contains("..")) {
-            writeToSocket(StatusCode.BAD_REQUEST.getHttpResponse());
+            writeToSocket(Response.BAD_REQUEST.getHttpResponse());
             // Stop Handler
-            throw new IOException();
+            return;
         }
 
         Controller.Parameters requestParameters;
@@ -81,7 +81,7 @@ class Handler implements Runnable {
             body = request.substring(
                     // Если найдено
                     indexOfBody != -1 ?
-                            // Смещение на 2 '\n'
+                            // Вернёт со смещением на 2 '\n'
                             indexOfBody + 2 :
                             // Иниче вернёт пустую строку ""
                             request.length()
@@ -90,13 +90,15 @@ class Handler implements Runnable {
         }
 
         String result = getControllerAnswer(httpPath, requestParameters);
+        // Если найден Controller
         if (result != null)
             writeToSocket(result);
+        // Иначе поиск файла
         else {
             result = getFile(httpPath);
             writeToSocket(
                     result != null ?
-                            result : StatusCode.NOT_FOUND.getHttpResponse()
+                            result : Response.NOT_FOUND.getHttpResponse()
             );
         }
     }
@@ -118,7 +120,7 @@ class Handler implements Runnable {
             for (String string : Files.readAllLines(Paths.get(
                     filesPath, httpPath)))
                 sb.append(string).append(NEW_LINE);
-            return StatusCode.OK.getHttpResponse(sb.toString());
+            return Response.OK.getHttpResponse(sb.toString());
         } catch (IOException e) {
             return null;
         }
@@ -139,5 +141,4 @@ class Handler implements Runnable {
                 content.getBytes());
         output.flush();
     }
-
 }

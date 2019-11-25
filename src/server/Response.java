@@ -1,8 +1,10 @@
+/*
+ * Copyright © 2019 Alexander Kolbasov
+ */
+
 package server;
 
-import static server.Handler.NEW_LINE;
-
-public enum StatusCode {
+public enum Response {
     // OK
     OK(200, "OK"),
     ACCEPTED(202, "Accepted"),
@@ -17,11 +19,13 @@ public enum StatusCode {
 
     ;
 
+    final static String NEW_LINE = "\r\n";
+
     public final int code;
     public final String content;
 
-    StatusCode(int code, String content) {
-        this.code = code;
+    Response(int statusCode, String content) {
+        this.code = statusCode;
         this.content = content;
     }
 
@@ -33,12 +37,14 @@ public enum StatusCode {
                         "Connection: close" + NEW_LINE + NEW_LINE +
                         content;
     }
-    public static String getHttpResponse(StatusCode statusCode, String content) {
-        return StatusCode.getHttpResponse(statusCode.code, content);
+
+    public static String getHttpResponse(Response statusCode, String content) {
+        return Response.getHttpResponse(statusCode.code, content);
     }
-    public static String getHttpResponse(StatusCode statusCode) {
-        return StatusCode.getHttpResponse(statusCode.code, statusCode.content);
+    public static String getHttpResponse(Response statusCode) {
+        return Response.getHttpResponse(statusCode.code, statusCode.content);
     }
+
     public String getHttpResponse() {
         return getHttpResponse(this);
     }
